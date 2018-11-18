@@ -28,7 +28,16 @@ class LogisticRegression:
 
     @staticmethod
     def __d_loss(X, y_hat, y):
-        
+        """
+        :param X: input
+        :param y_hat: neuron output
+        :param y: desired output
+        :return: d(L) / d(Wi) = (d(L) / d(y_hat)) * (d(y_hat) / d(Wi)) =
+                                (-y / y_hat + (1 - y) / (1 - y_hat)) * (d(sigmoid(sum(Wi * xi)) / d(Wi)) =
+                                ((y * (y_hat - 1) + (1 - y) * y_hat) / (y_hat * (1 - y_hat))) * (xi * y_hat * (1 - y_hat)) =
+                                xi * (y_hat - y)
+        """
+        return np.dot(X.T, y_hat - y) / y.size
 
     @staticmethod
     def __add_bias(X):
