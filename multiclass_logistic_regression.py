@@ -5,7 +5,7 @@ import numpy as np
 class MulticlassLogisticRegression:
     def __init__(self, number_of_classes, number_of_iterations, learning_rate):
         """
-        :param number_of_classes: number of classes to predict, mast be greater then 2.
+        :param number_of_classes: number of classes to predict, must be greater then 2.
         :param number_of_iterations: number of iterations of each classifier.
         :param learning_rate: learning rate.
         """
