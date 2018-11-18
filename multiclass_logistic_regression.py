@@ -4,6 +4,12 @@ import numpy as np
 
 class MulticlassLogisticRegression:
     def __init__(self, number_of_classes, number_of_iterations, learning_rate):
+        """
+        :param number_of_classes: number of classes to predict, mast be greater then 2.
+        :param number_of_iterations: number of iterations of each classifier.
+        :param learning_rate: learning rate.
+        """
+        assert (number_of_classes > 2)
         self.nc = number_of_classes
         self.lrs = []
         for i in range(0, self.nc):
@@ -11,15 +17,15 @@ class MulticlassLogisticRegression:
 
     def fit(self, X, y):
         """
-        :param X: input
-        :param y: desired output
+        :param X: input.
+        :param y: desired output.
         """
         for i in range(0, len(self.lrs)):
             self.lrs[i].fit(X, (y == i))
 
     def predict(self, X):
         """
-        :param X: input
+        :param X: input.
         :return: class index with maximum probability.
         """
         y_prob = []
