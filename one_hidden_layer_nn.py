@@ -85,7 +85,21 @@ class OneHiddenLayerNN:
         return self.alpha * d_loss / a.shape[0]
 
     def _d_hidden(self, X, a_h, a_o, a):
-        
+        """
+        :param X: input.
+        :param a_h: hidden output.
+        :param a_o: net_out.
+        :param a: desired out.
+        :return: d(Loss) / d(W_h(i, k))   = SUM_p((d(Loss) / d(a_o(p))) * SUM_j((d(a_o(p)) / d(a_h(j)) * (d(a_h(j)) / d(W_h(i, k))))
+                                          = SUM_p((d(Loss) / d(a_o(p))) * (d(a_o(p)) / d(a_h(k)) * (d(a_h(k)) / d(W_h(i, k)))
+                 d(Loss) / d(a_o(p))      = 2 * (a_o(p) - a(p))
+                 d(a_o(p)) / d(a_h(k))    = ((d(activation_out(z) / d(z)) * W_out(k, p) where z = a_o(p)
+                 d(a_h(k)) / d(W_h(i, k)) = X(i) * (d(activation_hidden(z)) / d(z)) where z = a_h(k)
+        """
+        # W_out[1:] because first row is bias.
+        d_loss = np.dot(X.T, np.dot(2.0 * (a_o - a) * self.__d_activation(a_o, self.out_func), self.W_out[1:].T) *
+                                                      self.__d_activation(a_h, self.hidden_func))
+        return self.alpha * d_loss / a.shape[0]
 
     @staticmethod
     def __add_bias(X):
