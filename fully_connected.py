@@ -1,6 +1,6 @@
 import numpy as np
 
-class FullConnectedNN:
+class full_connected_nn:
     """
     @brief: N hidden layer neural network with batch gradient descent.
             Currently supporting only relu, tanh and sigmoid activation functions.
@@ -69,7 +69,7 @@ class FullConnectedNN:
         """
         # multiplying by sqrt(2.0 / input_shape_size) for vanishing exploding gradients. (Andrew Ng. deep learning course).
         # put bias in weights.
-        self.W.append((np.random.randn(X.shape[1], self.nn_size[0]) * np.sqrt(2.0 / X.shape[1])))
+        self.W.append((np.random.randn(X.shape[1] + 1, self.nn_size[0]) * np.sqrt(2.0 / X.shape[1])))
         for l in range(1, len(self.nn_size)):
             self.W.append(np.random.randn(self.nn_size[l - 1] + 1, self.nn_size[l]) * np.sqrt(2.0 / (self.nn_size[l - 1] + 1)))
         self.W.append(np.random.randn(self.nn_size[-1] + 1, y.shape[1]) * np.sqrt(2.0 / (self.nn_size[-1] + 1)))
@@ -107,9 +107,17 @@ class FullConnectedNN:
                  d(a[r](k==t)) / d(W[r])         = (a[r+1] * (d(func[r](z[r]) / d(z[r])).
                  d(a[r + 1](v)) / d(W[r])       <=> d_curr
                  -----------------------------------------------------------------------------------------------------------
-                 d(Loss) / d(W[r]) = (d(Loss) / d(a[r+1]))  (d(a[r + 1](v)) / d(W[r]))
+                 d(Loss) / d(W[r]) = (d(Loss) / d(a[r+1])) *** (d(a[r + 1](v)) / d(W[r]))
         """
-
+        dW = []
+        end = len(self.afuncs)
+        delta = (2.0 * (a[end] - desired_out) * self.__d_activation(a[end], self.afuncs[end - 1]))
+        dW.append(np.dot(a[end - 1].T, delta))
+        for l in reversed(range(1, end)):
+            delta = np.dot(delta, self.W[l].T) * self.__d_activation(a[l], self.afuncs[l - 1])
+            delta = delta[:, 0:(delta.shape[1] - 1)]
+            dW.append(self.alpha * np.dot(a[l - 1].T, delta) / desired_out.shape[0])
+        return dW
 
     def __forward_backward_prop(self, X, y):
         """
@@ -117,24 +125,22 @@ class FullConnectedNN:
         :param y: ground truth.
         :return: updated weights.
         """
-
         a = [X]
-        z0 = np.dot(X, self.W[0])
-        a.append(self.__activation(z0, self.afuncs[0]))
-        for l in range(1, len(self.W)):
-            zi = np.dot(a[l], self.W[l][1:])
-            a.append(self.__activation(zi, self.afuncs[l]))
+        for l in range(0, len(self.W)):
+            a[l] = self.__add_bias(a[l])
+            zl = np.dot(a[l], self.W[l])
+            a.append(self.__activation(zl, self.afuncs[l]))
 
         dW = self.__d_W_l(a, y)
-        for l in range(1, len(a)):
-            self.W[l - 1] -= (self.alpha * np.dot(a[l - 1], dW[l - 1]) / y.shape[0])
+        for l in reversed(range(len(dW))):
+            self.W[l] -= dW[len(dW) - l - 1]
 
     def fit(self, X, y):
         """
         :param X: input. shape = (number_of_examples, features).
         :param y: output. shape = (number_of_examples, classes).
         """
-        X = self.__add_bias(X)
+        # X = self.__add_bias(X)
         self.__init_weights(X, y)
         batch_iters = int(X.shape[0] / self.batch_size)
         batch_rem = X.shape[0] - self.batch_size * batch_iters
@@ -158,9 +164,9 @@ class FullConnectedNN:
         :param X: input to predict.
         :return: output vector of probabilities.
         """
-        z0 = np.dot(X, self.W[0])
+        z0 = np.dot(self.__add_bias(X), self.W[0])
         a_o = self.__activation(z0, self.afuncs[0])
         for l in range(1, len(self.W)):
-            zi = np.dot(a_o, self.W[l])
+            zi = np.dot(self.__add_bias(a_o), self.W[l])
             a_o = self.__activation(zi, self.afuncs[l])
         return a_o
