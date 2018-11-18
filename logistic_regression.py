@@ -17,7 +17,14 @@ class LogisticRegression:
 
     @staticmethod
     def __loss(y_hat, y):
-        
+        """
+        :param y_hat: neuron output
+        :param y: desired output
+        :return: y_hat = P(y = 1 | x) => P(y = 0 | x) = 1 - y_hat =>
+                 P = (y_hat^y) * ((1 - y_hat)^(1 - y))
+                 choosing loss as -Log(P) to maximize we get convex function.
+        """
+        return np.mean(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat))
 
     @staticmethod
     def __d_loss(X, y_hat, y):
