@@ -71,7 +71,18 @@ class OneHiddenLayerNN:
         return np.sum(np.square(a_out - a)) / a.shape[0]
 
     def __d_out(self, a_h, a_o, a):
-        
+        """
+        :param a_h: hidden output.
+        :param a_o: net_out.
+        :param a: desired out.
+        :return: d(Loss) / d(W_out(i, k)) = SUM_i((d(Loss) / d(a_o(i)) * (d(a_o(i)) / d(W_out(i, k)).
+                 (d(a_o(i)) / d(W_out(i, k)) != 0 if and only if i == k because of z = SUM(a_h(i) * W_out(j, i) =>
+                 d(Loss) / d(W_out(i, k)) = (d(Loss) / d(a_o(k)) * (d(a_o(k)) / d(W_out(i, k))
+                                          = (2 * (a_o(k) - a(k))) * ((d(activation(z) / d(z)) * (d(z) / d(W_out(i, k)))
+                                          = (2 * (a_o(k) - a(k))) * a_h(i) * (d(activation(z)) / d(z))
+        """
+        d_loss = np.dot(a_h.T, (2.0 * (a_o - a) * self.__d_activation(a_o, self.out_func)))
+        return self.alpha * d_loss / a.shape[0]
 
     def _d_hidden(self, X, a_h, a_o, a):
         
