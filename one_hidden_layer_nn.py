@@ -113,8 +113,34 @@ class OneHiddenLayerNN:
         self.W_h -= d_hidden
 
     def fit(self, X, y):
-        
-        
+        """
+        :param X: input. shape = (number_of_examples, features).
+        :param y: output. shape = (number_of_examples, classes).
+        """
+        # add 1 to input layer to get bias term.
+        X = self.__add_bias(X)
+
+        # multiplying by sqrt(2.0 / input_shape_size) for vanishing exploding gradients. (Andrew Ng. deep learning course).
+        # put bias in weights.
+        self.W_h = np.random.randn(X.shape[1], self.nn_size) * np.sqrt(2.0 / X.shape[1])
+        self.W_out = np.random.randn(self.nn_size + 1, y.shape[1]) * np.sqrt(2.0 / (self.nn_size + 1))
+        batch_iters = int(X.shape[0] / self.batch_size)
+        batch_rem = X.shape[0] - self.batch_size * batch_iters
+
+        for i in range(self.epochs):
+            # update weights in every batch.
+            for j in range(batch_iters):
+                x_batch = X[j * self.batch_size : (j + 1) * self.batch_size, :]
+                y_batch = y[j * self.batch_size : (j + 1) * self.batch_size, :]
+                self.__forward_backward_prop(x_batch, y_batch)
+            x_batch = X[-batch_rem:]
+            y_batch = y[-batch_rem:]
+            self.__forward_backward_prop(x_batch, y_batch)
+            # print loss in end of epoch.
+            if i % 100 == 0:
+                a_o = self.predict_prob(X)
+                print("Loss = " + str(self.__loss(a_o, y)))
+
     def predict_prob(self, X):
         """
         :param X: input to predict.
